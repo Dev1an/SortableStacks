@@ -17,10 +17,10 @@ public protocol DropZone: AnyDropZone {
 }
 
 extension DropZone {
-	func acceptDrop(unsafeInfo: Any) -> Bool {
+	func acceptDrop(unsafeInfo: ErasedDropZoneInfo) -> Bool {
 		acceptDrop(info: unsafeInfo as! DragDropManager<Object>.Info)
 	}
-	func dragHover(unsafeInfo: Any) {
+	func dragHover(unsafeInfo: ErasedDropZoneInfo) {
 		dragHover(info: unsafeInfo as! DragDropManager<Object>.Info)
 	}
 	func release(unsafeObject: Any) {
@@ -30,13 +30,19 @@ extension DropZone {
 
 public protocol AnyDropZone {
 	var frame: CGRect {get}
-	func acceptDrop(unsafeInfo: Any) -> Bool
-	func dragHover(unsafeInfo: Any)
+
+	func acceptDrop(unsafeInfo: ErasedDropZoneInfo) -> Bool
+	func dragHover(unsafeInfo: ErasedDropZoneInfo)
 	func release(unsafeObject: Any)
 }
 
+public protocol ErasedDropZoneInfo {
+	var mousePosition: CGPoint {get}
+	var objectPosition: CGPoint? {get}
+}
+
 public class DragDropManager<Object: Identifiable> {
-	public class Info {
+	public class Info: ErasedDropZoneInfo {
 		let object: Object
 		let release: ()->Void
 		public var mousePosition = CGPoint.zero
