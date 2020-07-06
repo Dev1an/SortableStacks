@@ -8,7 +8,7 @@
 import SwiftUI
 import SortableStacks
 
-struct StateTest: View {
+struct Example: View {
 
 	struct IdentifiedNumber: Identifiable {
 		let value: Int
@@ -140,23 +140,8 @@ struct StateTest: View {
 	}
 }
 
-struct Block: View {
-	let number: Int
-	let color: Color
-
-	var body: some View {
-		Text("\(number)")
-			.font(.system(size: 25))
-			.fixedSize()
-			.padding()
-			.background(color)
-			.foregroundColor(.white)
-			.cornerRadius(4)
-	}
-}
-
 struct StateTest_Previews: PreviewProvider {
     static var previews: some View {
-        StateTest()
+        Example()
     }
 }

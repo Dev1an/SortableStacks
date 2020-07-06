@@ -92,6 +92,10 @@ extension SortableStack {
 						count += 1
 					}
 				}
+				if count == 0 && !removals.isEmpty {
+					buffer[0] = (properties.elements[0], true)
+					count = 1
+				}
 			}
 		}
 
