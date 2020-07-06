@@ -16,24 +16,8 @@ public protocol DropZone: AnyDropZone {
 	func release(object: Object)
 }
 
-extension DropZone {
-	func acceptDrop(unsafeInfo: ErasedDropZoneInfo) -> Bool {
-		acceptDrop(info: unsafeInfo as! DragDropManager<Object>.Info)
-	}
-	func dragHover(unsafeInfo: ErasedDropZoneInfo) {
-		dragHover(info: unsafeInfo as! DragDropManager<Object>.Info)
-	}
-	func release(unsafeObject: Any) {
-		release(object: unsafeObject as! Object)
-	}
-}
-
 public protocol AnyDropZone {
 	var frame: CGRect {get}
-
-	func acceptDrop(unsafeInfo: ErasedDropZoneInfo) -> Bool
-	func dragHover(unsafeInfo: ErasedDropZoneInfo)
-	func release(unsafeObject: Any)
 }
 
 public protocol ErasedDropZoneInfo {
@@ -58,6 +42,20 @@ public class DragDropManager<Object: Identifiable> {
 		}
 	}
 
+	struct SpecifiedDropZone {
+		let zone: AnyDropZone
+		let acceptDrop: (Info) -> Bool
+		let dragHover:  (Info) -> Void
+		let release:  (Object) -> Void
+
+		init<Zone: DropZone>(_ zone: Zone) where Zone.Object == Object {
+			self.zone = zone
+			acceptDrop = zone.acceptDrop
+			dragHover = zone.dragHover
+			release = zone.release
+		}
+	}
+
 	public init() {}
 
 	public func createInfo(for object: Object) -> Info {
@@ -66,7 +64,7 @@ public class DragDropManager<Object: Identifiable> {
 		}
 	}
 
-	private(set) var dropzones = [AnyHashable: AnyDropZone]()
+	private(set) var dropzones = [AnyHashable: SpecifiedDropZone]()
 	var objectHovers = [Object.ID: AnyHashable]()
 
 	func register<Zone: DropZone, ID: Hashable>(dropZone: Zone, with id: ID) where Zone.Object == Object {
@@ -76,7 +74,7 @@ public class DragDropManager<Object: Identifiable> {
 			print("WARNING: duplicate dropzone registration for", dropZone)
 		}
 		#endif
-		dropzones[key] = dropZone
+		dropzones[key] = SpecifiedDropZone(dropZone)
 	}
 
 	func unregister<ID: Hashable>(id: ID) {
@@ -90,22 +88,22 @@ public class DragDropManager<Object: Identifiable> {
 	}
 
 	func dropZoneID(under location: CGPoint) -> AnyHashable? {
-		dropzones.first { $1.frame.contains(location) }?.key
+		dropzones.first { $1.zone.frame.contains(location) }?.key
 	}
 
 	public func dragHover(info: Info) {
 		if let newZoneID = dropZoneID(under: info.mousePosition) {
 			if let previousZoneID = objectHovers[info.object.id], previousZoneID != newZoneID, let previousZone = dropzones[previousZoneID] {
-				previousZone.release(unsafeObject: info.object)
+				previousZone.release(info.object)
 			}
 			if let newZone = dropzones[newZoneID] {
-				newZone.dragHover(unsafeInfo: info)
+				newZone.dragHover(info)
 				objectHovers[info.object.id] = newZoneID
 			} else {
 				objectHovers.removeValue(forKey: info.object.id)
 			}
 		} else if let previousZoneID = objectHovers[info.object.id] {
-			dropzones[previousZoneID]?.release(unsafeObject: info.object)
+			dropzones[previousZoneID]?.release(info.object)
 			objectHovers.removeValue(forKey: info.object.id)
 		}
 	}
@@ -113,10 +111,10 @@ public class DragDropManager<Object: Identifiable> {
 	public func drop(info: Info) -> Bool {
 		if let newZoneID = dropZoneID(under: info.mousePosition) {
 			if let previousZoneID = objectHovers[info.object.id], previousZoneID != newZoneID, let previousZone = dropzones[previousZoneID] {
-				previousZone.release(unsafeObject: info.object)
+				previousZone.release(info.object)
 			}
 			if let newZone = dropzones[newZoneID] {
-				return newZone.acceptDrop(unsafeInfo: info)
+				return newZone.acceptDrop(info)
 			}
 		}
 		objectHovers.removeValue(forKey: info.object.id)
@@ -124,7 +122,7 @@ public class DragDropManager<Object: Identifiable> {
 	}
 
 	func release(object: Object) {
-		dropzones.values.forEach { dropzone in dropzone.release(unsafeObject: object) }
+		dropzones.values.forEach { dropzone in dropzone.release(object) }
 	}
 }
 
