@@ -20,7 +20,12 @@ extension SortableStack {
 				.offset(offset)
 				.zIndex(offset == .zero ? 0 : 1)
 				.gesture(move)
-				.transition( model.insertAnimations[index] == nil ? .opacity : .identity )
+				.transition(
+					.asymmetric(
+						insertion: model.insertAnimations[index] == nil ? .opacity : .identity,
+						removal: .opacity
+					)
+				)
 		}
 
 //		var center: UnitPoint {
