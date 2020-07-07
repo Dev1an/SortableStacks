@@ -42,7 +42,7 @@ public class DragDropManager<Object: Identifiable> {
 		}
 	}
 
-	struct SpecifiedDropZone {
+	struct Delegate {
 		let zone: AnyDropZone
 		let acceptDrop: (Info) -> Bool
 		let dragHover:  (Info) -> Void
@@ -64,7 +64,7 @@ public class DragDropManager<Object: Identifiable> {
 		}
 	}
 
-	private(set) var dropzones = [AnyHashable: SpecifiedDropZone]()
+	private(set) var dropzones = [AnyHashable: Delegate]()
 	var objectHovers = [Object.ID: AnyHashable]()
 
 	func register<Zone: DropZone, ID: Hashable>(dropZone: Zone, with id: ID) where Zone.Object == Object {
@@ -74,7 +74,7 @@ public class DragDropManager<Object: Identifiable> {
 			print("WARNING: duplicate dropzone registration for", dropZone)
 		}
 		#endif
-		dropzones[key] = SpecifiedDropZone(dropZone)
+		dropzones[key] = Delegate(dropZone)
 	}
 
 	func unregister<ID: Hashable>(id: ID) {

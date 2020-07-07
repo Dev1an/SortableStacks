@@ -7,11 +7,16 @@
 
 import SwiftUI
 
-struct Block: View {
+public struct Block: View {
 	let number: Int
 	let color: Color
 
-	var body: some View {
+	public init(number: Int, color: Color) {
+		self.number = number
+		self.color = color
+	}
+
+	public var body: some View {
 		Text("\(number)")
 			.font(.system(size: 25))
 			.fixedSize()

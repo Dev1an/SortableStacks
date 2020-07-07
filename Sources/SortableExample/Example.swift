@@ -8,7 +8,7 @@
 import SwiftUI
 import SortableStacks
 
-struct Example: View {
+public struct Example: View {
 
 	struct IdentifiedNumber: Identifiable {
 		let value: Int
@@ -19,7 +19,9 @@ struct Example: View {
 
 	let dragManager = DragDropManager<IdentifiedNumber>()
 
-	var body: some View {
+	public init() {}
+
+	public var body: some View {
 		VStack(spacing: 8) {
 			HStack {
 				Button("+") {
